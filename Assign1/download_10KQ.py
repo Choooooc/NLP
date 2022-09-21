@@ -1,10 +1,6 @@
-import nltk
-import numpy as np
 import pandas as pd
 import pickle
-import pprint
 import project_helper
-import project_tests
 from tqdm import tqdm
 from selenium import webdriver
 from selenium.webdriver.edge.service import Service as EdgeService
@@ -12,7 +8,6 @@ from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from selenium.webdriver.common.by import By
 from datetime import datetime
 from selenium.webdriver import EdgeOptions
-from parser_10KQ import get_word_list
 from itertools import islice
 from bs4 import BeautifulSoup
 import requests
@@ -50,7 +45,7 @@ sp500_data.dropna(inplace=True)
 cik_lookup = sp500_data.to_dict()["cik"]
 # download, parse and save 100 tickers at a time
 counter = 0
-for cik_lookup_s in chunks(cik_lookup, 10):
+for cik_lookup_s in chunks(cik_lookup, 100):
     counter += 1
     sec_data = {ticker: [] for ticker in cik_lookup_s}
     for ticker in cik_lookup_s:
@@ -124,9 +119,7 @@ for cik_lookup_s in chunks(cik_lookup, 10):
             if (file_type == '10-K' or file_type == '10-Q'):
                 file_url = index_url.replace('-index.htm', '.txt').replace('.txtl', '.txt')
                 browser.get(file_url)
-                raw_file = browser.find_element(By.TAG_NAME, "body").text
-                file_lemmaR = get_word_list(raw_file)
-                fillings_by_ticker[ticker][file_date] = file_lemmaR
+                fillings_by_ticker[ticker][file_date] = browser.find_element(By.TAG_NAME, "body").text
     with open(r'E:\10KQ\fillings_by_ticker ' + str(counter), 'wb') as handle:
         pickle.dump(fillings_by_ticker, handle, protocol=pickle.HIGHEST_PROTOCOL)
         print("Batch", counter, "saved.")

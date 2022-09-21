@@ -25,6 +25,7 @@ def get_word_list(raw_file):
     doc_end_is = [x.start() for x in doc_end_pattern.finditer(raw_file)]
     doc_types = [x[len('<TYPE>'):] for x in type_pattern.findall(raw_file)]
     document = {}
+    # TODO: Fix re.compile
     regex_10k = re.compile(r'(>Item(\s|&#160;|&nbsp;)(1A|1B|7A|7|8)\.{0,1})|(ITEM\s(1A|1B|7A|7|8))')
     regex_10q = re.compile(r'(>Item(\s|&#160;|&nbsp;)(2|3|4|5|1A))\.{0,1}|(ITEM\s(2|3|4|5|1A))')
     # Create a loop to go through each section type and save only the 10-K section in the dictionary
