@@ -21,6 +21,10 @@ import requests
 # options.add_argument("--window-size=1920,1080")
 # options.add_argument("enable-automation")
 # headers for connecting to SEC
+
+#continue from the previous break
+break_batch = 14
+
 headers = {'Host': 'www.sec.gov', 'Connection': 'close',
            'Accept': 'application/json, text/javascript, */*; q=0.01',
            'X-Requested-With': 'XMLHttpRequest',
@@ -50,10 +54,10 @@ sp500_data = sp500_data[sp500_data["permno"].isin(sp500_constituents["permno"])]
 sp500_data.drop_duplicates(inplace=True)
 sp500_data.dropna(inplace=True)
 cik_lookup = sp500_data.to_dict()["cik"]
+cik_lookup = dict(islice(cik_lookup.items(), break_batch, len(cik_lookup)))
 # download, parse and save 100 tickers at a time
-counter = 0
 for cik_lookup_s in chunks(cik_lookup, 10):
-    counter += 1
+    break_batch += 1
     sec_data = {ticker: [] for ticker in cik_lookup_s}
     for ticker in cik_lookup_s:
         # define our parameters dictionary
@@ -125,6 +129,6 @@ for cik_lookup_s in chunks(cik_lookup, 10):
             if (file_type == '10-K' or file_type == '10-Q'):
                 file_url = index_url.replace('-index.htm', '.txt').replace('.txtl', '.txt')
                 fillings_by_ticker[ticker][file_date] = sec_api.get(file_url)
-    with open(r'E:\10KQ\fillings_by_ticker ' + str(counter), 'wb') as handle:
+    with open(r'E:\10KQ\fillings_by_ticker ' + str(break_batch), 'wb') as handle:
         pickle.dump(fillings_by_ticker, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        print("Batch", counter, "saved.")
+        print("Batch", break_batch, "saved.")
