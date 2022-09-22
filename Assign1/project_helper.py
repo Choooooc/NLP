@@ -6,7 +6,7 @@ from ratelimit import limits, sleep_and_retry
 HEADER = {'Host': 'www.sec.gov', 'Connection': 'close',
           'Accept': 'application/json, text/javascript, */*; q=0.01',
           'X-Requested-With': 'XMLHttpRequest',
-          'User-Agent': 'xiaolanw@andrew.cmu.edu'
+          'User-Agent': 'ruizhuoj@andrew.cmu.edu'
          }
 class SecAPI(object):
     SEC_CALL_LIMIT = {'calls': 10, 'seconds': 1}
