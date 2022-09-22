@@ -11,19 +11,26 @@ from selenium.webdriver import EdgeOptions
 from itertools import islice
 from bs4 import BeautifulSoup
 import requests
-options = EdgeOptions()
-options.add_argument("--headless")
-options.add_argument("--window-size=%s" % "3840, 2160")
-
+# options = EdgeOptions()
+# options.add_argument("--headless")
+# options.add_argument("--headless")
+# options.add_argument("--no-sandbox")
+# options.add_argument("--disable-extensions")
+# options.add_argument("--disable-extensions")
+# options.add_argument("--dns-prefetch-disable")
+# options.add_argument("--window-size=1920,1080")
+# options.add_argument("enable-automation")
 # headers for connecting to SEC
 headers = {'Host': 'www.sec.gov', 'Connection': 'close',
            'Accept': 'application/json, text/javascript, */*; q=0.01',
            'X-Requested-With': 'XMLHttpRequest',
-           'User-Agent': 'ruizhuoj@andrew.cmu.edu'
+           'User-Agent': 'quangan@andrew.cmu.edu'
            }
 endpoint = r"https://www.sec.gov/cgi-bin/browse-edgar"
 base_url_sec = r"https://www.sec.gov"
 sec_api = project_helper.SecAPI()
+# browser = webdriver.Edge(service=EdgeService(EdgeChromiumDriverManager().install()))
+# browser.set_page_load_timeout(1000)
 #break apart dictionaries
 def chunks(data, SIZE=100):
     it = iter(data)
@@ -45,7 +52,7 @@ sp500_data.dropna(inplace=True)
 cik_lookup = sp500_data.to_dict()["cik"]
 # download, parse and save 100 tickers at a time
 counter = 0
-for cik_lookup_s in chunks(cik_lookup, 100):
+for cik_lookup_s in chunks(cik_lookup, 10):
     counter += 1
     sec_data = {ticker: [] for ticker in cik_lookup_s}
     for ticker in cik_lookup_s:
@@ -110,7 +117,6 @@ for cik_lookup_s in chunks(cik_lookup, 100):
         print(ticker, "request successful")
 
     fillings_by_ticker = {}
-    browser = webdriver.Edge(service=EdgeService(EdgeChromiumDriverManager().install()))
     for ticker, data in sec_data.items():
         fillings_by_ticker[ticker] = {}
         for index_url, file_type, file_date in tqdm(data, desc='Downloading {} Fillings'.format(ticker),
@@ -118,8 +124,7 @@ for cik_lookup_s in chunks(cik_lookup, 100):
             print(index_url, file_type, file_date)
             if (file_type == '10-K' or file_type == '10-Q'):
                 file_url = index_url.replace('-index.htm', '.txt').replace('.txtl', '.txt')
-                browser.get(file_url)
-                fillings_by_ticker[ticker][file_date] = browser.find_element(By.TAG_NAME, "body").text
+                fillings_by_ticker[ticker][file_date] = sec_api.get(file_url)
     with open(r'E:\10KQ\fillings_by_ticker ' + str(counter), 'wb') as handle:
         pickle.dump(fillings_by_ticker, handle, protocol=pickle.HIGHEST_PROTOCOL)
         print("Batch", counter, "saved.")
