@@ -11,8 +11,8 @@ def parse_10KQ(raw_file, pos_dat):
     items = pos_dat.index.to_list()
     item_raw = ""
     for i in range(1, len(items)):
-        item_raw += raw_file[pos_dat['start'].loc[items[i-1]]:pos_dat['start'].loc[items[i]]]
-    item_raw += raw_file[pos_dat['start'].loc[items[-1]]:]
+        item_raw += raw_file[pos_dat['start'].iloc[i-1]:pos_dat['start'].iloc[i]]
+    item_raw += raw_file[pos_dat['start'].iloc[-1]:]
     return BeautifulSoup(item_raw, 'lxml')
 
 def get_word_list(raw_file):
@@ -27,7 +27,8 @@ def get_word_list(raw_file):
     document = {}
     # TODO: Fix re.compile
     regex_10k = re.compile(r'(>Item(\s|&#160;|&nbsp;)(1A|1B|7A|7|8)\.{0,1})|(ITEM\s(1A|1B|7A|7|8))')
-    regex_10q = re.compile(r'(>Item(\s|&#160;|&nbsp;)(2|3|4|5|1A))\.{0,1}|(ITEM\s(2|3|4|5|1A))')
+    #regex_10q = re.compile(r'(>(Item|ITEM)(\s|&#160;|&nbsp;)(1A|1B|7A|7|8)\.{0,1})')
+    regex_10q = re.compile(r'(>Item(\s|&#160;|&nbsp;)(1A|2|3|4|5))\.{0,1}|(ITEM\s(1A|2|3|4|5|))')
     # Create a loop to go through each section type and save only the 10-K section in the dictionary
     for doc_type, doc_start, doc_end in zip(doc_types, doc_start_is, doc_end_is):
         if doc_type == '10-K' or '10-Q':
@@ -35,6 +36,8 @@ def get_word_list(raw_file):
     if '10-K' in document:
         matches = regex_10k.finditer(document['10-K'])
         test_df = pd.DataFrame([(x.group(), x.start(), x.end()) for x in matches])
+        if len(test_df)==0:
+            return []
         test_df.columns = ['item', 'start', 'end']
         test_df['item'] = test_df.item.str.lower()
         test_df.replace('&#160;', ' ', regex=True, inplace=True)
@@ -43,7 +46,7 @@ def get_word_list(raw_file):
         test_df.replace('\.', '', regex=True, inplace=True)
         test_df.replace('>', '', regex=True, inplace=True)
         pos_dat = test_df.sort_values('start', ascending=True).drop_duplicates(subset=['item'], keep='last')
-        pos_dat.set_index('item', inplace=True)
+        pos_dat.reset_index(drop=True)
         pos_dat.dropna(inplace=True)
         item_content = parse_10KQ(raw_file, pos_dat)
         file_clean = item_content.get_text("\n\n")
@@ -51,9 +54,12 @@ def get_word_list(raw_file):
         file_lemma = lemmatize_words(word_pattern.findall(file_clean))
         lemma_english_stopwords = lemmatize_words(stopwords.words('english'))
         file_lemmaR = [word for word in file_lemma if word not in lemma_english_stopwords]
-    else:
+        file_lemmaR = [x.lower() for x in file_lemmaR if re.match('[a-zA-Z]',x[0])]
+    elif "10-Q" in document:
         matches = regex_10q.finditer(document["10-Q"])
         test_df = pd.DataFrame([(x.group(), x.start(), x.end()) for x in matches])
+        if len(test_df)==0:
+            return []
         test_df.columns = ['item', 'start', 'end']
         test_df['item'] = test_df.item.str.lower()
         test_df.replace('&#160;', ' ', regex=True, inplace=True)
@@ -61,8 +67,8 @@ def get_word_list(raw_file):
         test_df.replace(' ', '', regex=True, inplace=True)
         test_df.replace('\.', '', regex=True, inplace=True)
         test_df.replace('>', '', regex=True, inplace=True)
-        pos_dat = test_df.sort_values('start', ascending=True).drop_duplicates(subset=['item'], keep='last')
-        pos_dat.set_index('item', inplace=True)
+        #pos_dat = test_df.sort_values('start', ascending=True).drop_duplicates(subset=['item'], keep='last')
+        pos_dat = test_df.copy().reset_index(drop=True)
         pos_dat.dropna(inplace=True)
         item_content = parse_10KQ(raw_file, pos_dat)
         file_clean = item_content.get_text("\n\n")
@@ -70,4 +76,5 @@ def get_word_list(raw_file):
         file_lemma = lemmatize_words(word_pattern.findall(file_clean))
         lemma_english_stopwords = lemmatize_words(stopwords.words('english'))
         file_lemmaR = [word for word in file_lemma if word not in lemma_english_stopwords]
+        file_lemmaR = [x.lower() for x in file_lemmaR if re.match('[a-zA-Z]',x[0])]
     return file_lemmaR
