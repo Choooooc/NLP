@@ -25,13 +25,12 @@ def get_word_list(raw_file):
     doc_end_is = [x.start() for x in doc_end_pattern.finditer(raw_file)]
     doc_types = [x[len('<TYPE>'):] for x in type_pattern.findall(raw_file)]
     document = {}
-    # TODO: Fix re.compile
     regex_10k = re.compile(r'(>Item(\s|&#160;|&nbsp;)(1A|1B|7A|7|8)\.{0,1})|(ITEM\s(1A|1B|7A|7|8))')
     #regex_10q = re.compile(r'(>(Item|ITEM)(\s|&#160;|&nbsp;)(1A|1B|7A|7|8)\.{0,1})')
     regex_10q = re.compile(r'(>Item(\s|&#160;|&nbsp;)(1A|2|3|4|5))\.{0,1}|(ITEM\s(1A|2|3|4|5|))')
     # Create a loop to go through each section type and save only the 10-K section in the dictionary
     for doc_type, doc_start, doc_end in zip(doc_types, doc_start_is, doc_end_is):
-        if doc_type == '10-K' or '10-Q':
+        if doc_type == '10-K' or doc_type == '10-Q':
             document[doc_type] = raw_file[doc_start:doc_end]
     if '10-K' in document:
         matches = regex_10k.finditer(document['10-K'])

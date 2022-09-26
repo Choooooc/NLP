@@ -11,16 +11,6 @@ from selenium.webdriver import EdgeOptions
 from itertools import islice
 from bs4 import BeautifulSoup
 import requests
-# options = EdgeOptions()
-# options.add_argument("--headless")
-# options.add_argument("--headless")
-# options.add_argument("--no-sandbox")
-# options.add_argument("--disable-extensions")
-# options.add_argument("--disable-extensions")
-# options.add_argument("--dns-prefetch-disable")
-# options.add_argument("--window-size=1920,1080")
-# options.add_argument("enable-automation")
-# headers for connecting to SEC
 
 #continue from the previous break
 break_batch = 14
