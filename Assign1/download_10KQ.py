@@ -18,7 +18,7 @@ break_batch = 14
 headers = {'Host': 'www.sec.gov', 'Connection': 'close',
            'Accept': 'application/json, text/javascript, */*; q=0.01',
            'X-Requested-With': 'XMLHttpRequest',
-           'User-Agent': 'quangan@andrew.cmu.edu'
+           'User-Agent': 'ruizhuoj@andrew.cmu.edu'
            }
 endpoint = r"https://www.sec.gov/cgi-bin/browse-edgar"
 base_url_sec = r"https://www.sec.gov"
@@ -36,9 +36,9 @@ def chunks(data, SIZE=100):
 # Filter the sp500_constituents csv by removing companies that were out after 2017.
 # Use the sp500_constituents permnos to filter sp500_data and get a dictionary of tickers and
 # CIKs.
-sp500_constituents = pd.read_csv("sp500_constituents.csv", dtype={"permno":int}, index_col=0)
+sp500_constituents = pd.read_csv("Data/sp500_constituents.csv", dtype={"permno":int}, index_col=0)
 sp500_constituents = sp500_constituents[(sp500_constituents["ending"] > "2017-01-01")]
-sp500_data = pd.read_csv("sp500_w_addl_id_with_cik.csv",dtype={"cik":str, "permno":int})
+sp500_data = pd.read_csv("Data/sp500_w_addl_id_with_cik.csv", dtype={"cik":str, "permno":int})
 sp500_data = sp500_data[["ticker", "permno", "cik"]].set_index("ticker")
 sp500_data = sp500_data[sp500_data["permno"].isin(sp500_constituents["permno"])]
 sp500_data.drop_duplicates(inplace=True)
